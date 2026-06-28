@@ -4855,6 +4855,7 @@ class DiscordAdapter(BasePlatformAdapter):
                 session_key=session_key,
                 allowed_user_ids=self._allowed_user_ids,
                 allowed_role_ids=self._allowed_role_ids,
+                expected_channel_id=str(target_id),
             )
 
             msg = await channel.send(embed=embed, view=view)
@@ -5937,15 +5938,23 @@ def _define_discord_view_classes() -> None:
             session_key: str,
             allowed_user_ids: set,
             allowed_role_ids: Optional[set] = None,
+            expected_channel_id: Optional[str] = None,
         ):
             super().__init__(timeout=300)  # 5-minute timeout
             self.session_key = session_key
             self.allowed_user_ids = allowed_user_ids
             self.allowed_role_ids = allowed_role_ids or set()
+            self.expected_channel_id = expected_channel_id
             self.resolved = False
 
         def _check_auth(self, interaction: discord.Interaction) -> bool:
             """Verify the user clicking is authorized."""
+            # Validate the click comes from the expected channel —
+            # prevents forwarded approval messages from being acted on elsewhere.
+            if (self.expected_channel_id
+                    and interaction.channel_id is not None
+                    and str(interaction.channel_id) != self.expected_channel_id):
+                return False
             return _component_check_auth(
                 interaction, self.allowed_user_ids, self.allowed_role_ids,
             )

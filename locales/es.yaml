@@ -82,9 +82,9 @@ gateway:
     expired: This approval request has expired.
     resolved_approved: Approved ({choice}).
     resolved_denied:       "Denegado."
-    approved_once: "Approved once"
-    approved_session: "Approved for session"
-    approved_always: "Approved permanently"
+    approved_once: "Aprobado una vez"
+    approved_session: "Aprobado para sesión"
+    approved_always: "Aprobado permanentemente"
     denied: "Denied"
 
 

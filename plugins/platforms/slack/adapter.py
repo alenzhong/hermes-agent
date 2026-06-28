@@ -3022,7 +3022,7 @@ class SlackAdapter(BasePlatformAdapter):
                 _header = ":warning: *Command Approval Required*"
                 _reason_label = "Reason"
                 _btn_once, _btn_session = "Allow Once", "Allow Session"
-                _btn_always, _btn_deny = "Always Allow", "Deny"
+                _btn_always, _btn_deny = "Always", "Deny"
 
             header = f"{_header}\n"
             reason = f"{_reason_label}: {description[:500]}"

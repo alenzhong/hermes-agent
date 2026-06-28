@@ -15,7 +15,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from gateway.platforms.wecom import WeComAdapter
+from plugins.platforms.wecom.adapter import WeComAdapter
 
 
 def _make_adapter():

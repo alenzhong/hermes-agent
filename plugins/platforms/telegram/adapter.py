@@ -3691,8 +3691,9 @@ class TelegramAdapter(BasePlatformAdapter):
 
             msg = await self._send_message_with_thread_fallback(**kwargs)
 
-            # Store session_key keyed by approval_id for the callback handler
-            self._approval_state[approval_id] = session_key
+            # Store session_key + expected chat_id for the callback handler
+            # The chat_id is validated on click to prevent forwarded-card approval
+            self._approval_state[approval_id] = {"session_key": session_key, "chat_id": str(chat_id)}
 
             return SendResult(success=True, message_id=str(msg.message_id))
         except Exception as e:
@@ -4350,9 +4351,21 @@ class TelegramAdapter(BasePlatformAdapter):
                     await query.answer(text="⛔ You are not authorized to approve commands.")
                     return
 
-                session_key = self._approval_state.pop(approval_id, None)
-                if not session_key:
+                stored = self._approval_state.pop(approval_id, None)
+                if not stored:
                     await query.answer(text="This approval has already been resolved.")
+                    return
+
+                # Validate the click comes from the expected chat —
+                # prevents forwarded cards from being approved in other chats.
+                session_key = stored["session_key"] if isinstance(stored, dict) else stored
+                expected_chat_id = stored.get("chat_id") if isinstance(stored, dict) else None
+                if expected_chat_id and query_chat_id is not None and str(query_chat_id) != expected_chat_id:
+                    logger.warning(
+                        "[Telegram] Unauthorized approval click: expected chat %s, got %s (user=%s)",
+                        expected_chat_id, query_chat_id, caller_id,
+                    )
+                    await query.answer(text="⛔ This approval card does not belong to this chat.")
                     return
 
                 # Map choice to human-readable label
